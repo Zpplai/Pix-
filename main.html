@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sistema de Anúncios</title>
+  <style>
+    body { font-family:'Segoe UI',sans-serif; background:#f4f6f9; margin:0; padding:40px 10px; display:flex; justify-content:center; }
+    .container { background:#fff; width:100%; max-width:400px; padding:30px; border-radius:12px; box-shadow:0 8px 16px rgba(0,0,0,0.1); position:relative; }
+    h2 { text-align:center; margin-bottom:24px; color:#333; }
+    input, select, button, textarea { width:100%; padding:12px; margin-bottom:16px; border-radius:8px; border:1px solid #ccc; font-size:16px; box-sizing:border-box; }
+    button { background-color:#007bff; color:#fff; border:none; cursor:pointer; transition:background 0.3s; }
+    button:hover { background-color:#0056b3; }
+    a { display:inline-block; margin-top:10px; text-align:center; width:100%; color:#007bff; cursor:pointer; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .hidden { display:none; }
+    video { width:100%; border-radius:8px; margin-bottom:12px; }
+    p { text-align:center; margin-top:10px; }
+    #pontos { font-size:22px; font-weight:700; text-align:center; margin-bottom:24px; color:#007bff; }
+    .btn-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px 18px; margin-bottom:24px; }
+    .msg { padding:12px; margin-bottom:16px; border-radius:8px; font-weight:600; text-align:center; animation:fadein .4s ease; }
+    .msg.error { background:#f8d7da; color:#842029; border:1px solid #f5c2c7; }
+    .msg.success { background:#d1e7dd; color:#0f5132; border:1px solid #badbcc; }
+    @keyframes fadein { from{opacity:0;} to{opacity:1;} }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- LOGIN -->
+  <section id="loginSection">
+    <h2>Login</h2>
+    <div id="msgLogin"></div>
+    <input type="email" id="loginEmail" placeholder="Email" required />
+    <input type="password" id="loginSenha" placeholder="Senha" required minlength="8" />
+    <button onclick="login()">🔑 Entrar</button>
+    <a onclick="mostrar('recuperarSection')">Esqueci a senha</a>
+    <a onclick="mostrar('cadastroSection')">Criar conta</a>
+  </section>
+  <!-- CADASTRO -->
+  <section id="cadastroSection" class="hidden">
+    <h2>Cadastro</h2>
+    <div id="msgCadastro"></div>
+    <input type="text" id="cadNome" placeholder="Nome" required />
+    <input type="email" id="cadEmail" placeholder="Email" required />
+    <input type="password" id="cadSenha" placeholder="Senha (mín 8 caracteres)" required minlength="8" />
+    <button onclick="registrar()">📝 Registrar</button>
+    <a onclick="mostrar('loginSection')">Voltar</a>
+  </section>
+  <!-- RECUPERAR SENHA -->
+  <section id="recuperarSection" class="hidden">
+    <h2>Recuperar Senha</h2>
+    <div id="msgRecuperar"></div>
+    <input type="email" id="recEmail" placeholder="Digite seu email" />
+    <button onclick="enviarLink()">✉️ Enviar link</button>
+    <a onclick="mostrar('loginSection')">Voltar</a>
+  </section>
+  <!-- DASHBOARD -->
+  <section id="dashboardSection" class="hidden">
+    <h2 id="saudacao">Bem-vindo!</h2>
+    <p id="pontos">0 pontos</p>
+    <div class="btn-grid">
+      <button onclick="mostrar('anuncioSection')">📺 Assistir Anúncios</button>
+      <button onclick="mostrar('miniGamesSection')">🎮 Mini Games</button>
+      <button onclick="mostrar('converterSection')">💰 Converter Pontos</button>
+      <button onclick="mostrar('suporteSection')">📞 Suporte</button>
+      <button onclick="mostrar('saqueSection')">💸 Solicitar Saque</button>
+      <button onclick="mostrar('historicoSaqueSection')">📄 Histórico Saques</button>
+      <button onclick="logout()">🚪 Sair</button>
+    </div>
+  </section>
+  <!-- ANÚNCIO -->
+  <section id="anuncioSection" class="hidden">
+    <h2>Assista e Ganhe</h2>
+    <video id="anuncioVideo" controls>
+      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+      Seu navegador não suporta vídeo.
+    </video>
+    <div id="msgAnuncio"></div>
+    <p>Assista até o fim e ganhe pontos aleatórios!</p>
+    <a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+  <!-- MINI GAMES -->
+  <section id="miniGamesSection" class="hidden">
+    <h2>Mini Games</h2><p>Em breve! :)</p><a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+  <!-- CONVERTER -->
+  <section id="converterSection" class="hidden">
+    <h2>Converter Pontos</h2>
+    <div id="msgConverter"></div>
+    <p id="descricaoConverter">Cada 1000 pontos = R$ 1,00. Valor mínimo: 1000 pontos.</p>
+    <p><strong>Seus pontos atuais: <span id="pontosAtuaisConverter">0</span></strong></p>
+    <input type="number" id="pontosConverter" placeholder="Quantidade (mín 1000)" />
+    <button onclick="converterPontos()">💸 Converter</button>
+    <button onclick="converterTudo()">💸 Converter Tudo</button>
+    <a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+  <!-- SUPORTE -->
+  <section id="suporteSection" class="hidden">
+    <h2>Suporte</h2>
+    <div id="msgSuporte"></div>
+    <textarea id="mensagemSuporte" placeholder="Escreva sua mensagem..."></textarea>
+    <button onclick="enviarSuporte()">📤 Enviar</button>
+    <a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+  <!-- SAQUE -->
+  <section id="saqueSection" class="hidden">
+    <h2>Saque via Pix</h2>
+    <div id="msgSaque"></div>
+    <p id="creditoSaldo">Crédito disponível: R$ 0.00</p>
+    <label>Tipo de chave Pix:</label>
+    <select id="tipoPix" onchange="ajustarMascara()">
+      <option value="cpf">CPF</option>
+      <option value="telefone">Telefone</option>
+      <option value="email">Email</option>
+      <option value="cnpj">CNPJ</option>
+    </select>
+    <input type="text" id="pixChave" placeholder="Informe a chave Pix" autocomplete="off" />
+    <label>Valor do saque (mín R$ 5):</label>
+    <input type="number" id="pixValor" min="5" step="0.01" />
+    <label>Prazo (dias úteis):</label>
+    <select id="prazoSaque" onchange="atualizarTaxa()">
+      <option value="48">48h (normal)</option>
+      <option value="24">24h (prioritário‑taxa 5%)</option>
+    </select>
+    <p>Taxa: <span id="taxaValor">0%</span></p>
+    <p>Você receberá: R$ <span id="valorLiquido">0.00</span></p>
+    <button onclick="solicitarSaque()">Solicitar Saque</button>
+    <a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+
+  <!-- HISTÓRICO SAQUES -->
+  <section id="historicoSaqueSection" class="hidden">
+    <h2>Histórico de Saques</h2>
+    <table style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background:#007bff; color:#fff;">
+          <th style="padding:8px; border:1px solid #ddd;">Data e Hora</th>
+          <th style="padding:8px; border:1px solid #ddd;">Valor (R$)</th>
+          <th style="padding:8px; border:1px solid #ddd;">Chave Pix</th>
+          <th style="padding:8px; border:1px solid #ddd;">Prazo</th>
+          <th style="padding:8px; border:1px solid #ddd;">Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyHistorico" style="text-align:center;">
+      </tbody>
+    </table>
+    <a onclick="mostrar('dashboardSection')">⬅ Voltar</a>
+  </section>
+</div>
+
+<script>
+  // Inicializa dados default no localStorage
+  if (!localStorage.getItem('usuario_email')) {
+    localStorage.setItem('usuario_email','usuario@exemplo.com');
+    localStorage.setItem('usuario_senha','senha1234');
+    localStorage.setItem('usuario_nome','Usuário Teste');
+    localStorage.setItem('usuario_pontos','0');
+    localStorage.setItem('usuario_credito','0');
+    localStorage.setItem('historico_saques', JSON.stringify([]));
+  }
+
+  function mostrar(id) {
+    const sections = ['loginSection','cadastroSection','recuperarSection','dashboardSection','anuncioSection','miniGamesSection','converterSection','suporteSection','saqueSection','historicoSaqueSection'];
+    sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    limparMensagens();
+    if(id==='dashboardSection') atualizarDashboard();
+    if(id==='converterSection') atualizarPontosConverter();
+    if(id==='saqueSection') { atualizarCredito(); ajustarMascara(); atualizarTaxa(); }
+    if(id==='historicoSaqueSection') carregarHistoricoSaques();
+  }
+  function limparMensagens() {
+    ['msgLogin','msgCadastro','msgRecuperar','msgConverter','msgSuporte','msgSaque','msgAnuncio'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = '';
+    });
+  }
+
+  // LOGIN
+  function login(){
+    const e=document.getElementById('loginEmail').value.trim(), s=document.getElementById('loginSenha').value.trim();
+    if(!e||!s){alert('Preencha os campos.');return;}
+    if(e===localStorage.getItem('usuario_email')&&s===localStorage.getItem('usuario_senha')){
+      mostrar('dashboardSection');
+    } else alert('Email ou senha incorretos.');
+  }
+  function logout(){ mostrar('loginSection'); }
+
+  // Atualiza dashboard
+  function atualizarDashboard(){
+    const nome=localStorage.getItem('usuario_nome')||'Usuário';
+    const pts=parseInt(localStorage.getItem('usuario_pontos')||'0');
+    document.getElementById('saudacao').textContent=`Bem‑vindo, ${nome}!`;
+    document.getElementById('pontos').textContent=`${pts} pontos`;
+  }
+
+  // Atualiza pontos no converter
+  function atualizarPontosConverter(){
+    document.getElementById('pontosAtuaisConverter').textContent=localStorage.getItem('usuario_pontos')||'0';
+  }
+
+  // Converter pontos
+  function converterPontos(){
+    const val= parseInt(document.getElementById('pontosConverter').value);
+    const pontosAtual=parseInt(localStorage.getItem('usuario_pontos')||'0');
+    const msg=document.getElementById('msgConverter');
+    msg.innerHTML='';
+    if(isNaN(val) || val < 1000){
+      msg.innerHTML = '<div class="msg error">Informe pelo menos 1000 pontos para converter.</div>';
+      return;
+    }
+    if(val > pontosAtual){
+      msg.innerHTML = '<div class="msg error">Você não tem pontos suficientes.</div>';
+      return;
+    }
+    let creditoAtual=parseFloat(localStorage.getItem('usuario_credito')||'0');
+    creditoAtual += val / 1000;
+    localStorage.setItem('usuario_credito', creditoAtual.toFixed(2));
+    localStorage.setItem('usuario_pontos', pontosAtual - val);
+    msg.innerHTML = `<div class="msg success">Convertido ${val} pontos em R$ ${(val/1000).toFixed(2)}</div>`;
+    atualizarPontosConverter();
+    atualizarDashboard();
+    document.getElementById('pontosConverter').value = '';
+  }
+
+  function converterTudo(){
+    const pontosAtual=parseInt(localStorage.getItem('usuario_pontos')||'0');
+    if(pontosAtual < 1000){
+      document.getElementById('msgConverter').innerHTML = '<div class="msg error">Você não tem pontos suficientes para converter tudo.</div>';
+      return;
+    }
+    document.getElementById('pontosConverter').value = pontosAtual;
+    converterPontos();
+  }
+
+  // SUPORTE
+  function enviarSuporte(){
+    const msg=document.getElementById('mensagemSuporte').value.trim();
+    const divMsg=document.getElementById('msgSuporte');
+    divMsg.innerHTML='';
+    if(!msg){
+      divMsg.innerHTML = '<div class="msg error">Digite uma mensagem para enviar.</div>';
+      return;
+    }
+    divMsg.innerHTML = '<div class="msg success">Mensagem enviada com sucesso! Responderemos em breve.</div>';
+    document.getElementById('mensagemSuporte').value = '';
+  }
+
+  // SAQUE
+  function atualizarCredito(){
+    const credito=parseFloat(localStorage.getItem('usuario_credito')||'0').toFixed(2);
+    document.getElementById('creditoSaldo').textContent = `Crédito disponível: R$ ${credito}`;
+    atualizarValorLiquido();
+  }
+
+  function ajustarMascara(){
+    const tipo = document.getElementById('tipoPix').value;
+    const input = document.getElementById('pixChave');
+    input.value = '';
+    input.placeholder = 'Informe a chave Pix';
+    input.maxLength = 100;
+    if(tipo==='cpf'){
+      input.placeholder = 'CPF (somente números)';
+      input.maxLength = 14; // 11 dígitos + ponto e traço opcionais
+      input.oninput = function(){
+        let v = this.value.replace(/\D/g,'');
+        if(v.length > 3) v = v.slice(0,3) + '.' + v.slice(3);
+        if(v.length > 7) v = v.slice(0,7) + '.' + v.slice(7);
+        if(v.length > 11) v = v.slice(0,11) + '-' + v.slice(11,13);
+        this.value = v.slice(0,14);
+      };
+    } else if(tipo==='telefone'){
+      input.placeholder = 'Telefone (somente números)';
+      input.maxLength = 15;
+      input.oninput = function(){
+        let v = this.value.replace(/\D/g,'');
+        if(v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+        if(v.length > 7) v = v.slice(0,9) + '-' + v.slice(9);
+        this.value = v.slice(0,15);
+      };
+    } else {
+      input.oninput = null;
+    }
+  }
+
+  function atualizarTaxa(){
+    const prazo = document.getElementById('prazoSaque').value;
+    const taxaDisplay = document.getElementById('taxaValor');
+    if(prazo==='24') taxaDisplay.textContent = '5%';
+    else taxaDisplay.textContent = '0%';
+    atualizarValorLiquido();
+  }
+
+  function atualizarValorLiquido(){
+    let credito = parseFloat(localStorage.getItem('usuario_credito')||'0');
+    let valor = parseFloat(document.getElementById('pixValor').value);
+    if(isNaN(valor)) valor = 0;
+    const prazo = document.getElementById('prazoSaque').value;
+    let taxa = prazo === '24' ? 0.05 : 0;
+    let liquido = valor - (valor * taxa);
+    if(liquido < 0) liquido = 0;
+    document.getElementById('valorLiquido').textContent = liquido.toFixed(2);
+  }
+
+  document.getElementById('pixValor').addEventListener('input', atualizarValorLiquido);
+  document.getElementById('prazoSaque').addEventListener('change', atualizarValorLiquido);
+
+  function validarChavePix(chave, tipo){
+    const somenteNumeros = chave.replace(/\D/g, '');
+    if(tipo==='cpf') return /^[0-9]{11}$/.test(somenteNumeros);
+    if(tipo==='telefone') return /^[0-9]{10,11}$/.test(somenteNumeros);
+    if(tipo==='email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(chave);
+    if(tipo==='cnpj') return /^[0-9]{14}$/.test(somenteNumeros);
+    return false;
+  }
+
+  function solicitarSaque(){
+    const tipo = document.getElementById('tipoPix').value;
+    const chave = document.getElementById('pixChave').value.trim();
+    const valor = parseFloat(document.getElementById('pixValor').value);
+    const prazo = document.getElementById('prazoSaque').value;
+    const msgSaque = document.getElementById('msgSaque');
+    msgSaque.innerHTML = '';
+
+    if(!validarChavePix(chave, tipo)){
+      msgSaque.innerHTML = '<div class="msg error">Chave Pix inválida para o tipo selecionado.</div>';
+      return;
+    }
+    if(isNaN(valor) || valor < 5){
+      msgSaque.innerHTML = '<div class="msg error">Informe um valor mínimo de R$ 5 para saque.</div>';
+      return;
+    }
+    let credito = parseFloat(localStorage.getItem('usuario_credito')||'0');
+    if(valor > credito){
+      msgSaque.innerHTML = '<div class="msg error">Você não tem crédito suficiente.</div>';
+      return;
+    }
+
+    // Salvar saque no histórico
+    const historico = JSON.parse(localStorage.getItem('historico_saques')||'[]');
+    const agora = new Date();
+    const dataHora = agora.toLocaleString('pt-BR');
+    const status = 'Processando';
+    historico.push({dataHora, valor: valor.toFixed(2), chavePix: chave, prazo: prazo + 'h', status});
+    localStorage.setItem('historico_saques', JSON.stringify(historico));
+
+    // Debitar crédito
+    credito -= valor;
+    localStorage.setItem('usuario_credito', credito.toFixed(2));
+    atualizarCredito();
+
+    msgSaque.innerHTML = '<div class="msg success">Saque solicitado com sucesso!</div>';
+    document.getElementById('pixChave').value = '';
+    document.getElementById('pixValor').value = '';
+    carregarHistoricoSaques();
+  }
+
+  // HISTÓRICO DE SAQUES
+  function carregarHistoricoSaques(){
+    const tbody = document.getElementById('tbodyHistorico');
+    tbody.innerHTML = '';
+    const historico = JSON.parse(localStorage.getItem('historico_saques')||'[]');
+    if(historico.length === 0){
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:12px;">Nenhum saque solicitado.</td></tr>';
+      return;
+    }
+    historico.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="border:1px solid #ddd; padding:8px;">${item.dataHora}</td>
+        <td style="border:1px solid #ddd; padding:8px;">R$ ${item.valor}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${item.chavePix}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${item.prazo}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${item.status}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ASSISTIR ANÚNCIO E GANHAR PONTOS APÓS TERMINAR
+  const video = document.getElementById('anuncioVideo');
+  const msgAnuncio = document.getElementById('msgAnuncio');
+
+  video.addEventListener('play', () => {
+    msgAnuncio.innerHTML = '<div class="msg">Anúncio em andamento, aguarde o final para ganhar pontos.</div>';
+  });
+  video.addEventListener('pause', () => {
+    if(video.currentTime < video.duration){
+      msgAnuncio.innerHTML = '<div class="msg error">Assista o anúncio até o fim para ganhar pontos.</div>';
+    }
+  });
+  video.addEventListener('ended', () => {
+    // Ganho de pontos aleatório, mais difícil acima de 25
+    let pontosGanhos;
+    if(Math.random() < 0.2){
+      pontosGanhos = Math.floor(Math.random() * (50 - 26 + 1)) + 26;
+    } else {
+      pontosGanhos = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
+    }
+    let pontos = parseInt(localStorage.getItem('usuario_pontos')||'0');
+    pontos += pontosGanhos;
+    localStorage.setItem('usuario_pontos', pontos);
+    atualizarDashboard();
+    atualizarPontosConverter();
+    msgAnuncio.innerHTML = `<div class="msg success">Você ganhou ${pontosGanhos} pontos!</div>`;
+  });
+
+  // Inicial
+  mostrar('loginSection');
+</script>
+</body>
+</html>
